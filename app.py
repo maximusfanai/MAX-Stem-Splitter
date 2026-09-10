@@ -6,7 +6,7 @@ from pathlib import Path
 import librosa
 import numpy as np
 import soundfile as sf
-from pydub import AudioSegment
+
 import streamlit as st
 import streamlit.components.v1 as components
 
