@@ -11,7 +11,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Logo path leh Base64 encoding
 logo_path = "logo.png"
 logo_img_tag = ""
 if os.path.exists(logo_path):
@@ -168,14 +167,11 @@ if uploaded_file is not None:
 
     if st.session_state.is_processing:
         progress_bar = st.progress(0, text="Initializing noise reduction...")
-
         progress_bar.progress(30, text="Reading audio stream...")
         data, samplerate = sf.read(uploaded_file)
 
-        progress_bar.progress(60, text="Applying noise gate & filter...")
-        # Simple threshold-based noise reduction via soundfile/numpy
+        progress_bar.progress(60, text="Applying noise filter...")
         if len(data.shape) > 1:
-            # Stereo to mono or process channels
             audio_data = np.mean(data, axis=1)
         else:
             audio_data = data
