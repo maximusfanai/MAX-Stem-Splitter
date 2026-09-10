@@ -1,7 +1,8 @@
 import base64
 import os
 import streamlit as st
-from pydub import AudioSegment
+import numpy as np
+import soundfile as sf
 
 st.set_page_config(
     page_title="Noise Reduction",
@@ -10,13 +11,13 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Logo path leh Base64 encoding (HTML chhunga fiah taka a lan theih nan)
-logo_path = r"E:\stemsplitterproject\logo.png"
+# Logo path leh Base64 encoding
+logo_path = "logo.png"
 logo_img_tag = ""
 if os.path.exists(logo_path):
-  with open(logo_path, "rb") as f:
-    encoded_logo = base64.b64encode(f.read()).decode()
-    logo_img_tag = f'<img src="data:image/png;base64,{encoded_logo}" style="height: 22px; width: auto; margin-right: 8px; vertical-align: middle;">'
+    with open(logo_path, "rb") as f:
+        encoded_logo = base64.b64encode(f.read()).decode()
+        logo_img_tag = f'<img src="data:image/png;base64,{encoded_logo}" style="height: 22px; width: auto; margin-right: 8px; vertical-align: middle;">'
 
 st.markdown(
     """
@@ -41,7 +42,6 @@ st.markdown(
         gap: 12px !important;
     }
 
-    /* Sidebar Page Links - Completely Static across all active/hover/focus states */
     [data-testid='stSidebar'] div[data-testid='stPageLink'],
     [data-testid='stSidebar'] div[data-testid='stPageLink'] > a,
     [data-testid='stSidebar'] div[data-testid='stPageLink'][aria-current="page"],
@@ -63,10 +63,7 @@ st.markdown(
     
     [data-testid='stSidebar'] div[data-testid='stPageLink'] span,
     [data-testid='stSidebar'] div[data-testid='stPageLink'] p,
-    [data-testid='stSidebar'] div[data-testid='stPageLink'] div,
-    [data-testid='stSidebar'] div[data-testid='stPageLink'][aria-current="page"] span,
-    [data-testid='stSidebar'] div[data-testid='stPageLink'][aria-current="page"] p,
-    [data-testid='stSidebar'] div[data-testid='stPageLink'][aria-current="page"] div {
+    [data-testid='stSidebar'] div[data-testid='stPageLink'] div {
         color: #ffffff !important;
         font-weight: bold !important;
         font-size: 12px !important;
@@ -95,11 +92,6 @@ st.markdown(
         border: none !important;
         padding: 12px 20px !important;
         box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
-        transition: all 0.3s ease;
-    }
-    .stButton > button:hover {
-        opacity: 0.9;
-        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
     }
     .preview-label {
         color: #94a3b8;
@@ -115,8 +107,8 @@ st.markdown(
 )
 
 with st.sidebar:
-  st.markdown(
-      f"""
+    st.markdown(
+        f"""
         <div style="margin-top: -85px;">
             <div style="display: flex; align-items: center; margin-bottom: 4px;">
                 {logo_img_tag}
@@ -125,100 +117,102 @@ with st.sidebar:
             <div style="color: #0055ff; font-size: 13px; font-weight: 900; margin-bottom: 8px; margin-top: 4px; letter-spacing: 1px;">CHOOSE CATEGORY</div>
         </div>
         """,
-      unsafe_allow_html=True,
-  )
-  st.page_link("app.py", label="🎛️ STEM SPLITTER")
-  st.page_link("pages/noise_reduction.py", label="🔇 NOISE REDUCTION")
-  st.page_link("pages/voice_recorder.py", label="🎙️ VOICE RECORDER")
-  st.page_link("pages/remastering.py", label="🎚️ REMASTERING")
-  st.page_link("pages/stemtube.py", label="📥 STEMTUBE")
-  st.page_link("pages/recent_files.py", label="🕒 RECENT FILES")
-  st.page_link("pages/projects.py", label="📁 PROJECTS")
-  st.page_link("pages/cloud_drive.py", label="☁️ CLOUD DRIVE")
-  st.page_link("pages/settings.py", label="⚙️ SETTINGS")
+        unsafe_allow_html=True,
+    )
+    st.page_link("app.py", label="🎛️ STEM SPLITTER")
+    st.page_link("pages/noise_reduction.py", label="🔇 NOISE REDUCTION")
+    st.page_link("pages/voice_recorder.py", label="🎙️ VOICE RECORDER")
+    st.page_link("pages/remastering.py", label="🎚️ REMASTERING")
+    st.page_link("pages/stemtube.py", label="📥 STEMTUBE")
+    st.page_link("pages/recent_files.py", label="🕒 RECENT FILES")
+    st.page_link("pages/projects.py", label="📁 PROJECTS")
+    st.page_link("pages/cloud_drive.py", label="☁️ CLOUD DRIVE")
+    st.page_link("pages/settings.py", label="⚙️ SETTINGS")
 
-# Title leh Back button chu "NOISE REDUCTION" ziahna chung chiah ah dah a ni a
 col_title, col_back = st.columns([75, 25])
 with col_title:
-  st.markdown(
-      '<div class="header-title">🔇 NOISE REDUCTION STUDIO</div>',
-      unsafe_allow_html=True,
-  )
+    st.markdown(
+        '<div class="header-title">🔇 NOISE REDUCTION STUDIO</div>',
+        unsafe_allow_html=True,
+    )
 with col_back:
-  st.page_link("app.py", label="🔙 Back", use_container_width=True)
+    st.page_link("app.py", label="🔙 Back", use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
-    "Upload Audio to Clean Noise", type=["mp3", "wav"]
+    "Upload Audio to Clean Noise", type=["wav", "flac", "ogg"]
 )
 
 if uploaded_file is not None:
-  st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown(
-      '<div class="preview-label">▶️ Original Audio Preview</div>',
-      unsafe_allow_html=True,
-  )
-  st.audio(uploaded_file)
-  st.markdown("<br>", unsafe_allow_html=True)
-
-  noise_level = st.slider("Noise Reduction Level", 0, 100, 50)
-
-  st.markdown("<br>", unsafe_allow_html=True)
-
-  if "is_processing" not in st.session_state:
-    st.session_state.is_processing = False
-
-  btn_label = "Processing..." if st.session_state.is_processing else "Process"
-
-  if st.button(btn_label, use_container_width=True):
-    st.session_state.is_processing = True
-    st.rerun()
-
-  if st.session_state.is_processing:
-    progress_bar = st.progress(0, text="Initializing noise reduction...")
-
-    progress_bar.progress(30, text="Analyzing audio stream...")
-    audio = AudioSegment.from_file(uploaded_file)
-
-    progress_bar.progress(60, text="Applying high-pass noise filter...")
-    filtered_audio = audio
-    if noise_level > 0:
-      cutoff = int(80 + (noise_level * 18))
-      filtered_audio = filtered_audio.high_pass_filter(cutoff)
-
-    progress_bar.progress(85, text="Exporting cleaned audio file...")
-    output_dir = "downloads"
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "denoised_output.mp3")
-    filtered_audio.export(output_path, format="mp3")
-
-    progress_bar.progress(100, text="Processing complete!")
-    st.session_state.is_processing = False
-    st.rerun()
-
-  output_path = "downloads/denoised_output.mp3"
-  if os.path.exists(output_path) and not st.session_state.is_processing:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.success("Noise reduction a zo ta!")
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="preview-label">▶️ Cleaned Audio Preview</div>',
+        '<div class="preview-label">▶️ Original Audio Preview</div>',
         unsafe_allow_html=True,
     )
-    st.audio(output_path)
+    st.audio(uploaded_file)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    with open(output_path, "rb") as f:
-      st.download_button(
-          label="📥 Download Cleaned Audio",
-          data=f,
-          file_name="denoised_output.mp3",
-          mime="audio/mp3",
-          use_container_width=True,
-      )
+    noise_level = st.slider("Noise Reduction Level", 0, 100, 50)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if "is_processing" not in st.session_state:
+        st.session_state.is_processing = False
+
+    btn_label = "Processing..." if st.session_state.is_processing else "Process"
+
+    if st.button(btn_label, use_container_width=True):
+        st.session_state.is_processing = True
+        st.rerun()
+
+    if st.session_state.is_processing:
+        progress_bar = st.progress(0, text="Initializing noise reduction...")
+
+        progress_bar.progress(30, text="Reading audio stream...")
+        data, samplerate = sf.read(uploaded_file)
+
+        progress_bar.progress(60, text="Applying noise gate & filter...")
+        # Simple threshold-based noise reduction via soundfile/numpy
+        if len(data.shape) > 1:
+            # Stereo to mono or process channels
+            audio_data = np.mean(data, axis=1)
+        else:
+            audio_data = data
+
+        threshold = (noise_level / 100.0) * 0.05
+        audio_data = np.where(np.abs(audio_data) < threshold, 0, audio_data)
+
+        progress_bar.progress(85, text="Exporting cleaned audio file...")
+        output_dir = "downloads"
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "denoised_output.wav")
+        sf.write(output_path, data, samplerate)
+
+        progress_bar.progress(100, text="Processing complete!")
+        st.session_state.is_processing = False
+        st.rerun()
+
+    output_path = "downloads/denoised_output.wav"
+    if os.path.exists(output_path) and not st.session_state.is_processing:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.success("Noise reduction a zo ta!")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            '<div class="preview-label">▶️ Cleaned Audio Preview</div>',
+            unsafe_allow_html=True,
+        )
+        st.audio(output_path)
+
+        with open(output_path, "rb") as f:
+            st.download_button(
+                label="📥 Download Cleaned Audio",
+                data=f,
+                file_name="denoised_output.wav",
+                mime="audio/wav",
+                use_container_width=True,
+            )
 else:
-  st.info("Audio file upload turin hmet rawh.")
+    st.info("Audio file upload turin hmet rawh.")
 
 st.markdown("</div>", unsafe_allow_html=True)
