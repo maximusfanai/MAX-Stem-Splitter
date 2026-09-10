@@ -77,14 +77,14 @@ if st.session_state.page_mode == "app_main" or st.session_state.logged_in_user i
         )
 
         st.page_link("app.py", label="🎛️ STEM SPLITTER")
-    st.page_link("noise_reduction.py", label="🔇 NOISE REDUCTION")
-    st.page_link("voice_recorder.py", label="🎙️ VOICE RECORDER")
-    st.page_link("remastering.py", label="🎚️ REMASTERING")
-    st.page_link("stemtube.py", label="📥 STEMTUBE")
-    st.page_link("recent_files.py", label="🕒 RECENT FILES")
-    st.page_link("projects.py", label="📁 PROJECTS")
-    st.page_link("cloud_drive.py", label="☁️ CLOUD DRIVE")
-    st.page_link("settings.py", label="⚙️ SETTINGS")
+        st.page_link("noise_reduction.py", label="🔇 NOISE REDUCTION")
+        st.page_link("voice_recorder.py", label="🎙️ VOICE RECORDER")
+        st.page_link("remastering.py", label="🎚️ REMASTERING")
+        st.page_link("stemtube.py", label="📥 STEMTUBE")
+        st.page_link("recent_files.py", label="🕒 RECENT FILES")
+        st.page_link("projects.py", label="📁 PROJECTS")
+        st.page_link("cloud_drive.py", label="☁️ CLOUD DRIVE")
+        st.page_link("settings.py", label="⚙️ SETTINGS")
         
         st.divider()
         if st.button("Log out", use_container_width=True):
