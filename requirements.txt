@@ -1,2 +1,5 @@
 streamlit
 yt-dlp
+librosa
+soundfile
+numpy
