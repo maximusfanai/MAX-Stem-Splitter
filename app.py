@@ -3,17 +3,21 @@ import os
 import random
 import time
 from pathlib import Path
-import librosa
 import numpy as np
 import soundfile as sf
 
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- TORCH & HUGGINGFACE PATHS ---
-os.environ['TORCH_HOME'] = 'E:/StemSplitterProject/cache/torch'
-os.environ['HF_HOME'] = 'E:/StemSplitterProject/cache/huggingface'
-os.environ['HUGGINGFACE_HUB_CACHE'] = 'E:/StemSplitterProject/cache/huggingface/hub'
+# --- TORCH & HUGGINGFACE PATHS (Portable) ---
+if os.name == 'nt':
+    os.environ['TORCH_HOME'] = 'E:/StemSplitterProject/cache/torch'
+    os.environ['HF_HOME'] = 'E:/StemSplitterProject/cache/huggingface'
+    os.environ['HUGGINGFACE_HUB_CACHE'] = 'E:/StemSplitterProject/cache/huggingface/hub'
+else:
+    os.environ['TORCH_HOME'] = '/tmp/torch'
+    os.environ['HF_HOME'] = '/tmp/huggingface'
+    os.environ['HUGGINGFACE_HUB_CACHE'] = '/tmp/huggingface/hub'
 
 st.set_page_config(
     page_title="MAX Stem Splitter & Auth",
@@ -75,7 +79,7 @@ if not st.session_state.splash_done:
         unsafe_allow_html=True,
     )
 
-    splash_path = r"E:\StemSplitterProject\assets\splash.png"
+    splash_path = "assets/splash.png"
 
     if os.path.exists(splash_path):
         with open(splash_path, "rb") as f:
@@ -90,9 +94,9 @@ if not st.session_state.splash_done:
             unsafe_allow_html=True,
         )
     else:
-        st.error("⚠️ 'assets/splash.png' hi hmuh a ni lo!")
+        st.warning("⚠️ 'assets/splash.png' hi hmuh a ni lo (Skipping splash)...")
 
-    time.sleep(6)
+    time.sleep(3)
     st.session_state.splash_done = True
     st.rerun()
 
@@ -121,41 +125,10 @@ else:
                 font-weight: 900 !important;
                 margin-bottom: 8px !important;
             }
-            .studio-panel-box { 
-                background-color: #10121d !important; 
-                border: 1px solid #1c1e2d !important; 
-                border-radius: 6px !important; 
-                padding: 12px 10px !important; 
-            }
-            .neon-sky-box {
-                background-color: #0a1d37 !important;
-                border: 1px solid #00f0ff !important;
-                border-radius: 6px !important; 
-                padding: 10px !important; 
-            }
             </style>
             """,
             unsafe_allow_html=True,
         )
-
-        def format_time(seconds):
-            mins = int(seconds // 60)
-            secs = int(seconds % 60)
-            return f"{mins:02d}:{secs:02d}"
-
-        def play_mobile_audio(file_path, accent_color="#00f0ff"):
-            if file_path and os.path.exists(file_path):
-                with open(file_path, "rb") as f:
-                    audio_bytes = f.read()
-                b64 = base64.b64encode(audio_bytes).decode()
-                audio_html = f'''
-                    <div style="background-color: #10121d; border: 1px solid {accent_color}; border-radius: 6px; padding: 10px; margin-bottom: 8px; width: 100%;">
-                        <audio controls controlsList="nodownload" style="width: 100%; height: 42px;">
-                            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                        </audio>
-                    </div>
-                '''
-                components.html(audio_html, height=70)
 
         with st.sidebar:
             st.markdown(
@@ -191,7 +164,7 @@ else:
             st.success("File uploaded successfully!")
 
     else:
-        # --- 3. LOGIN PAGE (DIRECT EMAIL / PASSWORD INPUT) ---
+        # --- 3. LOGIN PAGE ---
         st.markdown(
             """
             <style>
@@ -227,7 +200,6 @@ else:
                 unsafe_allow_html=True
             )
 
-            # Direct inputs for any Google Account Email & Password
             email_input = st.text_input("Email or phone", placeholder="Enter your email or phone")
             password_input = st.text_input("Password", type="password", placeholder="Enter your password")
             
